@@ -9,15 +9,18 @@ from keras.layers.advanced_activations import LeakyReLU
 from keras.layers.convolutional import UpSampling2D, Conv2D
 from keras.models import Sequential, Model
 from keras.optimizers import Adam
+import calendar
+import time
 import datetime
 import matplotlib.pyplot as plt
 import sys
 from data_loader import DataLoader
 import numpy as np
 import os
+import click
 
 class Pix2Pix():
-    def __init__(self):
+    def __init__(self, dataset):
         # Input shape
         self.img_rows = 256
         self.img_cols = 256
@@ -25,7 +28,7 @@ class Pix2Pix():
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
 
         # Configure data loader
-        self.dataset_name = 'ficture'
+        self.dataset_name = dataset
         self.data_loader = DataLoader(dataset_name=self.dataset_name,
                                       img_res=(self.img_rows, self.img_cols))
 
@@ -208,9 +211,27 @@ class Pix2Pix():
                 cnt += 1
         fig.savefig("images/%s/%d_%d.png" % (self.dataset_name, epoch, batch_i))
         plt.close()
+    
+    def save_generator(self, location):
+        model_json = self.generator.to_json()
+        with open('%s.json' % location, 'w') as json_file:
+            json_file.write(model_json)
 
+        self.generator.save_weights('%s.h5' % location)
+
+@click.command()
+@click.option('--dataset', default='ficture', help='dataset to use for training')
+@click.option('--location', help='location for trained model')
+def main(dataset, location):
+    gan = Pix2Pix(dataset)
+    gan.train(epochs=1, batch_size=1, sample_interval=200)
+
+    if(location):
+        gan.save_generator(location)
+    else:
+        seconds = time.time()
+        timeObj = time.localtime(seconds)
+        gan.save_generator('./saved_models/model_%s_%s_%s_%s_%s' % (timeObj.tm_year, timeObj.tm_mon, timeObj.tm_mday, timeObj.tm_hour, timeObj.tm_min))
 
 if __name__ == '__main__':
-    gan = Pix2Pix()
-    gan.train(epochs=200, batch_size=1, sample_interval=200)
-    print('done')
+    main()
