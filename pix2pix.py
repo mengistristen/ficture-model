@@ -206,7 +206,7 @@ class Pix2Pix():
         for i in range(r):
             for j in range(c):
                 axs[i,j].imshow(gen_imgs[cnt])
-                axs[i, j].set_title(titles[i])
+                axs[i,j].set_title(titles[i])
                 axs[i,j].axis('off')
                 cnt += 1
         fig.savefig("images/%s/%d_%d.png" % (self.dataset_name, epoch, batch_i))
@@ -224,7 +224,7 @@ class Pix2Pix():
 @click.option('--location', help='location for trained model')
 def main(dataset, location):
     gan = Pix2Pix(dataset)
-    gan.train(epochs=1, batch_size=1, sample_interval=200)
+    gan.train(epochs=200, batch_size=1, sample_interval=200)
 
     if(location):
         gan.save_generator(location)
